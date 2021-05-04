@@ -1,0 +1,13 @@
+# This is a comment
+
+/build/
+
+/libs/go-sqlite3/
+
+/lnxmon.db
+/lnxmon.db-journal
+
+/lnxmoncli
+/lnxmoncli.log
+/lnxmonsrv
+/lnxmonsrv.log

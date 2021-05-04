@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="refresh" content="60" >
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Linux Monitor</title>
+<script type="text/javascript" src="./static/highcharts.js"></script>
+<style>
+body {
+  font-family: Vernada, Arial, Helvetica, Sans-serif;
+  font-size: 12px;
+  color: #404040;
+}
+body {
+  margin: 0;
+  padding: 0;
+}
+a {
+  text-decoration: none;
+  color: #404040;
+  display: inline-block;
+  outline: none;
+}
+a:visited {
+}
+a:hover {
+  text-decoration: underline;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th {
+  background-color: #F1F1F1;
+  border: 1px solid #E5E5E5;
+  padding: 5px;
+}
+tr {
+  border: 1px solid #E5E5E5;
+}
+/*
+tr:hover {
+  background-color: #F2F9FB;
+}
+*/
+td {
+  border: 1px solid #E5E5E5;
+  padding: 5px;
+  text-align: center;
+}
+.clear {
+  clear: both;
+  height: 0;
+  overflow: hidden;
+}
+.hide {
+  display: none
+}
+.table-border {
+  border: 1px solid #E5E5E5;
+}
+.table-head {
+  font-size: 14px;
+  border-bottom: 0px;
+  background-color: #F2F2F2;
+  border-bottom: 0px;
+  letter-spacing: 1px;
+}
+a.expand-focus {
+  display: block;
+  text-decoration: none;
+}
+.div_block {
+  margin: 5px 10px;
+}
+#top_area {
+  width: 100%;
+  height: 20px;
+  background-color: #428BCA;
+  margin: 0 auto;
+  padding: 8px 0;
+}
+#logo {
+  font-size: 20px;
+  margin-left: 15px;
+  color: #FFF;
+  float: left;
+}
+#link {
+  font-size: 20px;
+  margin-right: 15px;
+  color: #FFF;
+  float: right;
+}
+
+.link_block {
+  text-decoration: none;
+  display: inline-block;
+  margin: 2px 5px;
+  float: left;
+  border: 1px solid #E5E5E5;
+  padding: 3px 4px;
+  border-radius: 3px;
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
+  border-collapse: collapse;
+  border-style: hidden;
+  box-shadow: 0 0 0 1px #E5E5E5;
+}
+
+.there_is_a_line {
+  display: inline-block;
+  margin: 2px 5px;
+  float: left;
+  border: 0;
+  padding: 3px 4px;
+  color: #999;
+}
+
+.highlighted {
+  background-color: #F2F9FB;
+  font-weight: 600 !important;
+}
+</style>
+<script type="text/javascript">
+/*
+$(function () {
+  $('#container_loadavg').highcharts({
+  });
+});
+*/
+
+document.addEventListener('DOMContentLoaded', function () {
+  Highcharts.chart('container_loadavg', {
+    chart: { type: 'spline' },
+    credits: { enabled: false },
+    title: {
+      text: 'Loadavg, the number of processors is {{.X_cpu_processors}}',
+      align: 'left',
+      {{ if not .X_is_request_from_pc }} style: { fontSize: '14px' }, {{ end }}
+    },
+    plotOptions: { spline: { marker: { enabled: false } } },
+    xAxis: {
+      labels: {
+        rotation: 90,
+        formatter: function () { return this.value.substr(11); },
+        enabled: false,
+      },
+      categories: JSON.parse({{.Z}}),
+    },
+    yAxis: { title: { text: 'Average' }, min: 0 },
+    series: JSON.parse({{.Y}})
+  });
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+  Highcharts.chart('container_cpu_usage', {
+    chart: { type: 'spline' },
+    credits: { enabled: false },
+    title: {
+      text: 'CPU Usage, is basically the sum of (sys% + nice% + user%)',
+      align: 'left',
+      {{ if not .X_is_request_from_pc }} style: { fontSize: '14px' }, {{ end }}
+    },
+    plotOptions: { spline: { marker: { enabled: false } } },
+    xAxis: {
+      labels: {
+        rotation: 90,
+        formatter: function () { return this.value.substr(11); },
+        enabled: false,
+      },
+      categories: JSON.parse({{.Z}}) },
+    yAxis: { title: { text: 'Percentage(%)' }, min: 0 },
+    tooltip: { valueSuffix: '%' },
+    series: JSON.parse({{.M}})
+  });
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+  Highcharts.chart('container_mem_usage', {
+    chart: { type: 'spline' },
+    credits: { enabled: false },
+    title: {
+      text: 'Mem Usage, is equivalent to (MemTotal - MemFree - Buffers - Cached) / MemTotal',
+      align: 'left',
+      {{ if not .X_is_request_from_pc }} style: { fontSize: '14px' }, {{ end }}
+    },
+    plotOptions: { spline: { marker: { enabled: false } } },
+    xAxis: {
+      labels: {
+        rotation: 90,
+        formatter: function () { return this.value.substr(11); },
+        enabled: false,
+      },
+      categories: JSON.parse({{.Z}}),
+    },
+    yAxis: { title: { text: 'Percentage(%)' }, min: 0 },
+    tooltip: { valueSuffix: '%' },
+    series: JSON.parse({{.N}})
+  });
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+  Highcharts.chart('container_disk_usage', {
+    chart: { type: 'spline' },
+    credits: { enabled: false },
+    title: {
+      text: 'Disk Usage',
+      align: 'left',
+      {{ if not .X_is_request_from_pc }} style: { fontSize: '14px' }, {{ end }}
+    },
+    plotOptions: { spline: { marker: { enabled: false } } },
+    xAxis: {
+      labels: {
+        rotation: 90,
+        formatter: function () { return this.value.substr(11); },
+        enabled: false,
+      },
+      categories: JSON.parse({{.Z}})
+    },
+    yAxis: { title: { text: 'Percentage(%)' }, min: 0 },
+    tooltip: { valueSuffix: '%' },
+    series: JSON.parse({{.E}})
+  });
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+  Highcharts.chart('container_disk_io_rate', {
+    chart: { type: 'spline' },
+    credits: { enabled: false },
+    title: {
+      text: 'Disk I/O Rate',
+      align: 'left',
+      {{ if not .X_is_request_from_pc }} style: { fontSize: '14px' }, {{ end }}
+    },
+    plotOptions: { spline: { marker: { enabled: false } } },
+    xAxis: {
+      labels: {
+        rotation: 90,
+        formatter: function () { return this.value.substr(11); },
+        enabled: false,
+      },
+      categories: JSON.parse({{.Z}}),
+    },
+    yAxis: { title: { text: 'Traffic(KB/s)' }, min: 0 },
+    tooltip: { valueSuffix: 'KB/s' },
+    series: JSON.parse({{.F}})
+  });
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+  Highcharts.chart('container_nic_io_rate', {
+    chart: { type: 'spline' },
+    credits: { enabled: false },
+    title: {
+      text: 'NIC I/O Rate',
+      align: 'left',
+      {{ if not .X_is_request_from_pc }} style: { fontSize: '14px' }, {{ end }}
+    },
+    plotOptions: { spline: { marker: { enabled: false } } },
+    xAxis: {
+      labels: {
+        rotation: 90,
+        formatter: function () { return this.value.substr(11); },
+        enabled: false,
+      },
+      categories: JSON.parse({{.Z}}),
+    },
+    yAxis: { title: { text: 'Traffic(KB/s)' }, min: 0 },
+    tooltip: { valueSuffix: 'KB/s' },
+    series: JSON.parse({{.P}})
+  });
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+  Highcharts.chart('container_tcp_sockets', {
+    chart: { type: 'spline' },
+    credits: { enabled: false },
+    title: {
+      text: 'TCP Sockets',
+      align: 'left',
+      {{ if not .X_is_request_from_pc }} style: { fontSize: '14px' }, {{ end }}
+    },
+    plotOptions: { spline: { marker: { enabled: false } } },
+    xAxis: {
+      labels: {
+        rotation: 90,
+        formatter: function () { return this.value.substr(11); },
+        enabled: false,
+      },
+      categories: JSON.parse({{.Z}}),
+    },
+    yAxis: { title: { text: 'Number' }, min: 0 },
+    series: JSON.parse({{.C}})
+  });
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+  Highcharts.chart('container_users', {
+    chart: { type: 'spline' },
+    credits: { enabled: false },
+    title: {
+      text: 'Users',
+      align: 'left',
+      {{ if not .X_is_request_from_pc }} style: { fontSize: '14px' }, {{ end }}
+    },
+    plotOptions: { spline: { marker: { enabled: false } } },
+    xAxis: {
+      labels: {
+        rotation: 90,
+        formatter: function () { return this.value.substr(11); },
+        enabled: false,
+      },
+      categories: JSON.parse({{.Z}}),
+    },
+    yAxis: { title: { text: 'Number' }, min: 0 },
+    series: JSON.parse({{.U}})
+  });
+});
+</script>
+</head>
+
+<body>
+<div id="top_area">
+  <div id="logo"><a href="/" style="color: #FFF;">Linux Monitor</a></div>
+  <div class="clear"></div>
+</div>
+
+<br />
+
+<!--
+OS ---------- OS Type
+Arch -------- Architecture
+CPU --------- CPU Processors
+Mem (G) ----- Mem Size (G)
+Disk (G) ---- Disk Size (G)
+Active Time - Heart Time
+-->
+
+{{ if .X_is_request_from_pc }}
+<div class="div_block" style="<?php echo $host_static_info ? '' : 'display: none'; ?>">
+  {{ if ne $.X_v "1" }}
+  <table>
+    <tr class="table-head">
+      <td>Hostname</td>
+      <td>IP</td>
+      <td>OS</td>
+      <td>Arch</td>
+      <td>Loadavg</td>
+      <td>CPU</td>
+      <td>Mem (G)</td>
+      <td>Disk (G)</td>
+      <td>Users</td>
+      <td>Uptime (d)</td>
+      <td>Active Time</td>
+      <!--
+      <td>Link</td>
+      -->
+    </tr>
+    {{ range $host := .X_host_list }}
+    <tr {{ if eq $.X_current_id $host.host_id }}class="highlighted"{{ end }}>
+      <td>
+        {{ if eq $host.host_id $.X_host_id }}<span style="font-weight: 600;">&check;</span>{{ end }}
+        <a href="/?pid={{$.X_current_pid}}&id={{$host.host_id}}" style="text-decoration: underline;">{{$host.hostname}}</a>
+      </td>
+      <td>
+        <a href="/?pid={{$.X_current_pid}}&id={{$host.host_id}}" style="text-decoration: underline;">
+          {{ range $ip := $host.ips }}{{ $ip }}<br />{{ end }}
+        </a>
+      </td>
+      <td>{{$host.os_type}}</td>
+      <td>{{$host.architecture}}</td>
+      <td>
+        {{ if not $host.is_overload }}
+        <span style="color: #095720;">{{ $host.loadavg }}</span>
+        {{ else }}
+        <span style="color: #E06043;">{{ $host.loadavg }}</span>
+        {{ end }}
+      </td>
+      <td>
+        {{ if not $host.is_overcpu }}
+        <span style="color: #095720;">{{$host.cpu_processors}} ({{$host.cpu_usage}}%)</span>
+        {{ else }}
+        <span style="color: #E06043;">{{$host.cpu_processors}} ({{$host.cpu_usage}}%)</span>
+        {{ end }}
+      </td>
+      <td>
+        {{ if not $host.is_overmem }}
+        <span style="color: #095720;">{{$host.mem_size}} ({{$host.mem_usage}}%)</span>
+        {{ else }}
+        <span style="color: #E06043;">{{$host.mem_size}} ({{$host.mem_usage}}%)</span>
+        {{ end }}
+      </td>
+      <td>
+        {{ if not $host.is_overdisk }}
+        <span style="color: #095720;">{{$host.disk_size}} ({{$host.disk_usage}}%)</span>
+        {{ else }}
+        <span style="color: #E06043;">{{$host.disk_size}} ({{$host.disk_usage}}%)</span>
+        {{ end }}
+      </td>
+      <td>{{$host.users}}</td>
+      <td>{{$host.uptime}}</td>
+      <td>{{$host.heart_time}}</td>
+      <!--
+      <td>
+        <a href="/?pid={{$.X_current_pid}}&id={{$host.host_id}}&v=1" target="_blank" style="text-decoration: underline;">SHARE</a>
+      </td>
+      -->
+    </tr>
+    {{ end }}
+  </table>
+  {{ end }}
+
+  {{ if eq $.X_v "1" }}
+  <table>
+    <tr class="table-head">
+      <td>Hostname</td>
+      <td>IP</td>
+      <td>OS</td>
+      <td>Arch</td>
+      <td>Loadavg</td>
+      <td>CPU</td>
+      <td>Mem (G)</td>
+      <td>Disk (G)</td>
+      <td>Users</td>
+      <td>Uptime (d)</td>
+      <td>Heart Time</td>
+    </tr>
+    {{ range $host := .X_host_list }}
+    {{ if eq $.X_current_id $host.host_id }}
+    <tr {{ if eq $.X_current_id $host.host_id }}class="highlighted"{{ end }}>
+      <td>
+        {{ if eq $host.host_id $.X_host_id }}<span style="font-weight: 600;">&check;</span>{{ end }}
+        <a href="/?pid={{$.X_current_pid}}&id={{$host.host_id}}&v={{$.X_v}}" style="text-decoration: underline;">{{$host.hostname}}</a>
+      </td>
+      <td>
+        <a href="/?pid={{$.X_current_pid}}&id={{$host.host_id}}&v={{$.X_v}}" style="text-decoration: underline;">
+          {{ range $ip := $host.ips }}{{ $ip }}<br />{{ end }}
+        </a>
+      </td>
+      <td>{{$host.os_type}}</td>
+      <td>{{$host.architecture}}</td>
+      <td>
+        {{ if not $host.is_overload }}
+        <span style="color: #095720;">{{ $host.loadavg }}</span>
+        {{ else }}
+        <span style="color: #E06043;">{{ $host.loadavg }}</span>
+        {{ end }}
+      </td>
+      <td>
+        {{ if not $host.is_overcpu }}
+        <span style="color: #095720;">{{$host.cpu_processors}} ({{$host.cpu_usage}}%)</span>
+        {{ else }}
+        <span style="color: #E06043;">{{$host.cpu_processors}} ({{$host.cpu_usage}}%)</span>
+        {{ end }}
+      </td>
+      <td>
+        {{ if not $host.is_overmem }}
+        <span style="color: #095720;">{{$host.mem_size}} ({{$host.mem_usage}}%)</span>
+        {{ else }}
+        <span style="color: #E06043;">{{$host.mem_size}} ({{$host.mem_usage}}%)</span>
+        {{ end }}
+      </td>
+      <td>
+        {{ if not $host.is_overdisk }}
+        <span style="color: #095720;">{{$host.disk_size}} ({{$host.disk_usage}}%)</span>
+        {{ else }}
+        <span style="color: #E06043;">{{$host.disk_size}} ({{$host.disk_usage}}%)</span>
+        {{ end }}
+      </td>
+      <td>{{$host.users}}</td>
+      <td>{{$host.uptime}}</td>
+      <td>{{$host.heart_time}}</td>
+    </tr>
+    {{ end }}
+    {{ end }}
+    </table>
+    {{ end }}
+</div>
+{{ end }}
+
+{{ if not .X_is_request_from_pc }}
+<div class="div_block" style="<?php echo $host_static_info ? '' : 'display: none'; ?>">
+  <table>
+    <tr class="table-head">
+      <td>Hostname</td>
+      <td>IP</td>
+      <td>Loadavg</td>
+    </tr>
+    {{ range $host := .X_host_list }}
+    <tr {{ if eq $.X_current_id $host.host_id }}class="highlighted"{{ end }}>
+      <td>
+        {{ if ne $host.host_id $.X_host_id }}
+        <a href="/?pid={{$.X_current_pid}}&id={{$host.host_id}}">{{$host.hostname}}</a>
+        {{ else }}
+        <a href="/?pid={{$.X_current_pid}}&id={{$host.host_id}}" style="text-decoration: underline;">{{$host.hostname}}</a>
+        {{ end }}
+      </td>
+      <td>
+        {{ if ne $host.host_id $.X_host_id }}
+        <a href="/?pid={{$.X_current_pid}}&id={{$host.host_id}}">{{$host.ip}}</a>
+        {{ else }}
+        <a href="/?pid={{$.X_current_pid}}&id={{$host.host_id}}" style="text-decoration: underline;">
+          {{ range $ip := $host.ips }}{{ $ip }}<br />{{ end }}
+        </a>
+        {{ end }}
+      </td>
+      <td>
+        {{ if not $host.is_overload }}
+        <span style="color: #095720;">{{ $host.loadavg }}</span>
+        {{ else }}
+        <span style="color: #E06043;">{{ $host.loadavg }}</span>
+        {{ end }}
+      </td>
+    </tr>
+    {{ end }}
+  </table>
+</div>
+{{ end }}
+
+{{ if ne $.X_v "1" }}
+<div style="margin-left: 5px; margin-top: 10px;">
+  {{ range $project := .X_project_list }}
+  <div class="link_block {{ if eq $.X_current_pid $project.id }} highlighted {{ end }}">
+    <a href="/?pid={{$project.id}}">{{ $project.name }}</a>
+  </div>
+  {{ end }}
+
+  {{ if $.X_project_list }}
+  <div class="there_is_a_line">|</div>
+  {{ end }}
+
+  <div class="link_block {{ if eq $.X_current_ts 10 }} highlighted {{ end }}">
+    <a href="/?pid={{.X_current_pid}}&id={{.X_host_id}}&ts=10">10 MINS </a>
+  </div>
+  <div class="link_block {{ if eq $.X_current_ts 30 }} highlighted {{ end }}">
+    <a href="/?pid={{.X_current_pid}}&id={{.X_host_id}}&ts=30">30 MINS</a>
+  </div>
+  <div class="link_block {{ if eq $.X_current_ts 60 }} highlighted {{ end }}">
+    <a href="/?pid={{.X_current_pid}}&id={{.X_host_id}}&ts=60">1 HOUR</a>
+  </div>
+  <div class="link_block {{ if eq $.X_current_ts 240 }} highlighted {{ end }}">
+    <a href="/?pid={{.X_current_pid}}&id={{.X_host_id}}&ts=240">4 HOURS</a>
+  </div>
+  <div class="link_block {{ if eq $.X_current_ts 480 }} highlighted {{ end }}">
+    <a href="/?pid={{.X_current_pid}}&id={{.X_host_id}}&ts=480">8 HOURS</a>
+  </div>
+  <div class="link_block {{ if eq $.X_current_ts 720 }} highlighted {{ end }}">
+    <a href="/?pid={{.X_current_pid}}&id={{.X_host_id}}&ts=720">12 HOURS</a>
+  </div>
+  <div class="link_block {{ if eq $.X_current_ts 1440 }} highlighted {{ end }}">
+    <a href="/?pid={{.X_current_pid}}&id={{.X_host_id}}&ts=1440">1 DAY</a>
+  </div>
+  <div class="link_block {{ if eq $.X_current_ts 2880 }} highlighted {{ end }}">
+    <a href="/?pid={{.X_current_pid}}&id={{.X_host_id}}&ts=2880">2 DAYS</a>
+  </div>
+  <div class="link_block {{ if eq $.X_current_ts 4320 }} highlighted {{ end }}">
+    <a href="/?pid={{.X_current_pid}}&id={{.X_host_id}}&ts=4320">3 DAYS</a>
+  </div>
+  <div class="link_block {{ if eq $.X_current_ts 5760 }} highlighted {{ end }}">
+    <a href="/?pid={{.X_current_pid}}&id={{.X_host_id}}&ts=5760">4 DAYS</a>
+  </div>
+  <div class="link_block {{ if eq $.X_current_ts 7200 }} highlighted {{ end }}">
+    <a href="/?pid={{.X_current_pid}}&id={{.X_host_id}}&ts=7200">5 DAYS</a>
+  </div>
+  <div class="link_block {{ if eq $.X_current_ts 10080 }} highlighted {{ end }}">
+    <a href="/?pid={{.X_current_pid}}&id={{.X_host_id}}&ts=10080">7 DAYS</a>
+  </div>
+  <div class="clear"></div>
+</div>
+{{ end }}
+
+{{ if eq $.X_v "1" }}
+<div style="margin-left: 5px; margin-top: 10px;">
+  <div class="link_block {{ if eq $.X_current_ts 10 }} highlighted {{ end }}">
+    <a href="/?pid={{.X_current_pid}}&id={{.X_host_id}}&ts=10&v={{.X_v}}">10 MINS </a>
+  </div>
+  <div class="link_block {{ if eq $.X_current_ts 30 }} highlighted {{ end }}">
+    <a href="/?pid={{.X_current_pid}}&id={{.X_host_id}}&ts=30&v={{.X_v}}">30 MINS</a>
+  </div>
+  <div class="link_block {{ if eq $.X_current_ts 60 }} highlighted {{ end }}">
+    <a href="/?pid={{.X_current_pid}}&id={{.X_host_id}}&ts=60&v={{.X_v}}">1 HOUR</a>
+  </div>
+  <div class="link_block {{ if eq $.X_current_ts 240 }} highlighted {{ end }}">
+    <a href="/?pid={{.X_current_pid}}&id={{.X_host_id}}&ts=240&v={{.X_v}}">4 HOURS</a>
+  </div>
+  <div class="link_block {{ if eq $.X_current_ts 480 }} highlighted {{ end }}">
+    <a href="/?pid={{.X_current_pid}}&id={{.X_host_id}}&ts=480&v={{.X_v}}">8 HOURS</a>
+  </div>
+  <div class="link_block {{ if eq $.X_current_ts 720 }} highlighted {{ end }}">
+    <a href="/?pid={{.X_current_pid}}&id={{.X_host_id}}&ts=720&v={{.X_v}}">12 HOURS</a>
+  </div>
+  <div class="link_block {{ if eq $.X_current_ts 1440 }} highlighted {{ end }}">
+    <a href="/?pid={{.X_current_pid}}&id={{.X_host_id}}&ts=1440&v={{.X_v}}">1 DAY</a>
+  </div>
+  <div class="link_block {{ if eq $.X_current_ts 2880 }} highlighted {{ end }}">
+    <a href="/?pid={{.X_current_pid}}&id={{.X_host_id}}&ts=2880&v={{.X_v}}">2 DAYS</a>
+  </div>
+  <div class="link_block {{ if eq $.X_current_ts 4320 }} highlighted {{ end }}">
+    <a href="/?pid={{.X_current_pid}}&id={{.X_host_id}}&ts=4320&v={{.X_v}}">3 DAYS</a>
+  </div>
+  <div class="link_block {{ if eq $.X_current_ts 5760 }} highlighted {{ end }}">
+    <a href="/?pid={{.X_current_pid}}&id={{.X_host_id}}&ts=5760&v={{.X_v}}">4 DAYS</a>
+  </div>
+  <div class="link_block {{ if eq $.X_current_ts 7200 }} highlighted {{ end }}">
+    <a href="/?pid={{.X_current_pid}}&id={{.X_host_id}}&ts=7200&v={{.X_v}}">5 DAYS</a>
+  </div>
+  <div class="link_block {{ if eq $.X_current_ts 10080 }} highlighted {{ end }}">
+    <a href="/?pid={{.X_current_pid}}&id={{.X_host_id}}&ts=10080&v={{.X_v}}">7 DAYS</a>
+  </div>
+  <div class="clear"></div>
+</div>
+{{ end }}
+
+<div>
+  <a id="loadavg" name="loadavg">&nbsp;</a>
+  <div id="container_loadavg" style="min-width: 200px; height: 300px; margin: 0 auto"></div>
+  <a id="cpu_usage" name="cpu_usage">&nbsp;</a>
+  <div id="container_cpu_usage" style="min-width: 200px; height: 300px; margin: 0 auto"></div>
+  <a id="mem_usage" name="mem_usage">&nbsp;</a>
+  <div id="container_mem_usage" style="min-width: 200px; height: 300px; margin: 0 auto"></div>
+  <a id="disk_usage" name="disk_usage">&nbsp;</a>
+  <div id="container_disk_usage" style="min-width: 200px; height: 300px; margin: 0 auto"></div>
+  <a id="disk_io_rate" name="disk_io_rate">&nbsp;</a>
+  <div id="container_disk_io_rate" style="min-width: 200px; height: 300px; margin: 0 auto"></div>
+  <a id="nic_io_rate" name="nic_io_rate">&nbsp;</a>
+  <div id="container_nic_io_rate" style="min-width: 200px; height: 300px; margin: 0 auto"></div>
+  <a id="tcp_sockets" name="tcp_sockets">&nbsp;</a>
+  <div id="container_tcp_sockets" style="min-width: 200px; height: 300px; margin: 0 auto"></div>
+  <a id="users" name="users">&nbsp;</a>
+  <div id="container_users" style="min-width: 200px; height: 300px; margin: 0 auto"></div>
+</div>
+</body>
+</html>
